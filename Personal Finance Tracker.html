@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Finance Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+      <div class="container mx-auto px-4 py-6 flex justify-between items-center">
+        <h1 class="text-3xl font-bold flex items-center gap-3">
+          <i class="fas fa-wallet"></i> My Finance Tracker
+        </h1>
+        <button id="exportBtn" class="bg-white text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+          <i class="fas fa-download"></i> Export CSV
+        </button>
+      </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 flex-grow">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Summary Cards -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Total Income</p>
+              <p id="totalIncome" class="text-3xl font-bold text-green-600">UGX0.00</p>
+            </div>
+            <i class="fas fa-arrow-trend-up text-green-600 text-4xl opacity-70"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Total Expenses</p>
+              <p id="totalExpenses" class="text-3xl font-bold text-red-600">UGX0.00</p>
+            </div>
+            <i class="fas fa-arrow-trend-down text-red-600 text-4xl opacity-70"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-sm">Balance</p>
+              <p id="balance" class="text-3xl font-bold text-blue-600">UGX0.00</p>
+            </div>
+            <i class="fas fa-piggy-bank text-blue-600 text-4xl opacity-70"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Add Transaction Form -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+            <i class="fas fa-plus-circle text-indigo-600"></i> Add Transaction
+          </h2>
+          <form id="transactionForm">
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1">Type</label>
+              <div class="flex gap-4">
+                <label class="flex items-center"><input type="radio" name="type" value="income" checked class="mr-2 text-indigo-600"> <span class="text-green-600 font-medium">Income</span></label>
+                <label class="flex items-center"><input type="radio" name="type" value="expense" class="mr-2 text-indigo-600"> <span class="text-red-600 font-medium">Expense</span></label>
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1">Description</label>
+              <input type="text" id="description" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="e.g., Salary, Groceries"/>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1">Amount (UGX)</label>
+              <input type="number" step="0.01" id="amount" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"/>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1">Category</label>
+              <select id="category" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Salary">Salary</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="mb-6">
+              <label class="block text-sm font-medium mb-1">Date</label>
+              <input type="date" id="date" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"/>
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition">
+              Add Transaction
+            </button>
+          </form>
+        </div>
+
+        <!-- Transactions List + Chart -->
+        <div class="lg:col-span-2 space-y-8">
+          <!-- Chart -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Income vs Expenses (Last 12 Months)</h2>
+            <canvas id="chart" height="300"></canvas>
+          </div>
+
+
+          <!-- Recent Transactions -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold">Recent Transactions</h2>
+              <button id="clearAll" class="text-red-600 hover:text-red-700 text-sm font-medium">Clear All</button>
+            </div>
+            <div id="transactionsList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'financeTrackerData';
+    let transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let chartInstance = null;
+
+    const totalIncomeEl = document.getElementById('totalIncome');
+    const totalExpensesEl = document.getElementById('totalExpenses');
+    const balanceEl = document.getElementById('balance');
+    const form = document.getElementById('transactionForm');
+    const list = document.getElementById('transactionsList');
+    const dateInput = document.getElementById('date');
+
+    // Set today as default date
+    dateInput.valueAsDate = new Date();
+	
+
+    function saveTransactions() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(amount);
+    }
+
+    function updateSummary() {
+      const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+      const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+      const balance = income - expenses;
+
+      totalIncomeEl.textContent = formatCurrency(income);
+      totalExpensesEl.textContent = formatCurrency(expenses);
+      balanceEl.textContent = formatCurrency(balance);
+      balanceEl.classList.toggle('text-red-600', balance < 0);
+      balanceEl.classList.toggle('text-green-600', balance >= 0);
+    }
+
+    function renderTransactions() {
+      list.innerHTML = '';
+      transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      transactions.forEach((t, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50 transition';
+        div.innerHTML = `
+          <div>
+            <div class="font-medium">${t.description}</div>
+            <div class="text-sm text-gray-500">${t.category} • ${new Date(t.date).toLocaleDateString()}</div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="${t.type === 'income' ? 'text-green-600' : 'text-red-600'} font-bold text-lg">
+              ${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}
+            </span>
+            <button onclick="deleteTransaction(${index})" class="text-red-500 hover:text-red-700">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function updateChart() {
+      const ctx = document.getElementById('chart').getContext('2d');
+      
+      const last12Months = Array.from({length: 12}, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        return d.toISOString().slice(0, 7);
+      }).reverse();
+
+      const monthlyData = last12Months.map(month => {
+        const income = transactions
+          .filter(t => t.type === 'income' && t.date.startsWith(month))
+          .reduce((sum, t) => sum + t.amount, 0);
+        const expense = transactions
+          .filter(t => t.type === 'expense' && t.date.startsWith(month))
+          .reduce((sum, t) => sum + t.amount, 0);
+        return { month, income, expense };
+      });
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: monthlyData.map(d => new Date(d.month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })),
+          datasets: [
+            {
+              label: 'Income',
+              data: monthlyData.map(d => d.income),
+              backgroundColor: 'rgba(34, 197, 94, 0.8)',
+            },
+            {
+              label: 'Expenses',
+              data: monthlyData.map(d => d.expense),
+              backgroundColor: 'rgba(239, 68, 68, 0.8)',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    window.deleteTransaction = function(index) {
+      transactions.splice(index, 1);
+      saveTransactions();
+      updateAll();
+    };
+
+    document.getElementById('clearAll').onclick = () => {
+      if (confirm('Delete ALL transactions? This cannot be undone.')) {
+        transactions = [];
+        saveTransactions();
+        updateAll();
+      }
+    };
+
+    document.getElementById('exportBtn').onclick = () => {
+      let csv = 'Date,Type,Description,Category,Amount\n';
+      transactions.forEach(t => {
+        csv += `${t.date},${t.type},${t.description},${t.category},${t.amount}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `finance-export-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    };
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const transaction = {
+        type: document.querySelector('input[name="type"]:checked').value,
+        description: document.getElementById('description').value.trim(),
+        amount: parseFloat(document.getElementById('amount').value),
+        category: document.getElementById('category').value,
+        date: document.getElementById('date').value,
+      };
+      
+      transactions.push(transaction);
+      saveTransactions();
+      form.reset();
+      dateInput.valueAsDate = new Date();
+      updateAll();
+    };
+
+    function updateAll() {
+      updateSummary();
+      renderTransactions();
+      updateChart();
+    }
+
+    // Initial render
+    updateAll();
+  </script>
+  <footer>
+        <p>© 2025  | WASSWA JOSHUA Finance Tracker site</p>
+    </footer>
+</body>
+</html>
